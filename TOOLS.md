@@ -31,6 +31,16 @@ Things like:
 - Default speaker: Kitchen HomePod
 ```
 
+### Home Lab Notes
+
+- Home Assistant VM is `101` on `halepve`.
+- HA USB passthrough:
+  - `10c4:ea70` → Silicon Labs CP2105 Dual UART Bridge, used for Z-Wave.
+  - `8087:0026` → Intel Bluetooth, intended for future Bluetooth-capable device support.
+  - `303a:831a` → previous Wi-Fi-related path that did not become the preferred HA connectivity approach.
+- HA network intent: keep HA inherently present on the IoT layer rather than depending on Wi-Fi bridging hacks, while retaining trusted/admin-side management access.
+- UniFi access additions exist under `/secrets`, including a `unifi-token` for UniFi view/API use and a local-only SSH account/path `unifi-local` for home-network SSH capabilities.
+
 ## Why Separate?
 
 Skills are shared. Your setup is yours. Keeping them apart means you can update skills without losing your notes, and share skills without leaking your infrastructure.
