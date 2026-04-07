@@ -39,7 +39,7 @@ Things like:
   - `8087:0026` → Intel Bluetooth, intended for future Bluetooth-capable device support.
   - `303a:831a` → previous Wi-Fi-related path that did not become the preferred HA connectivity approach.
 - HA network intent: keep HA inherently present on the IoT layer rather than depending on Wi-Fi bridging hacks, while retaining trusted/admin-side management access.
-- UniFi access additions exist under `/secrets`, including a `unifi-token` for UniFi view/API use and a local-only SSH account/path `unifi-local` for home-network SSH capabilities.
+- UniFi access additions exist under `/secrets`, including API credentials for UniFi controller access. Current preferred pattern is API-key based access using `X-API-KEY` against the local UniFi controller endpoint (example shape: `https://192.168.1.1/proxy/network/integration/v1/...`). `unifi-local` remains a local-only SSH path if low-level access is ever specifically needed, but API access is preferred.
 
 ## Why Separate?
 
