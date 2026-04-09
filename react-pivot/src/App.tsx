@@ -1,19 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  Background,
-  Controls,
-  MarkerType,
-  MiniMap,
-  ReactFlow,
-  ReactFlowProvider,
-  type Edge,
-  type Node,
-  type NodeProps
-} from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
 import './App.css';
 import { buildApiUrl } from './config';
-import type { DesireCacheItem, DesireCachePayload, SkillTreeNodeData } from './types';
+import type { DesireCacheItem, DesireCachePayload } from './types';
 
 const SECTION_ALIASES: Record<string, string> = {
   perks: 'Perk Injector',
@@ -23,26 +11,6 @@ const SECTION_ALIASES: Record<string, string> = {
 };
 
 const SECTION_COLORS = ['#7dd3fc', '#c084fc', '#fb7185', '#4ade80', '#f59e0b', '#2dd4bf'];
-const DEFAULT_NODE_COLOR = '#7dd3fc';
-const SECTION_WIDTH = 1080;
-const SECTION_HEIGHT = 840;
-const SECTION_GAP_X = 360;
-const SECTION_GAP_Y = 260;
-const ITEM_ROW_HEIGHT = 92;
-const ITEM_COLUMN_WIDTH = 178;
-
-type GraphMeta = {
-  sectionZones: Array<{
-    id: string;
-    label: string;
-    color: string;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    branchCount: number;
-  }>;
-};
 
 function sectionLabelFor(section: string) {
   return SECTION_ALIASES[section.toLowerCase()] ?? section;
@@ -71,222 +39,55 @@ function itemPrice(item: DesireCacheItem) {
 }
 
 function itemTypeLabel(item: DesireCacheItem) {
-  if (item.status === 'section') return 'section';
-  if (item.status === 'branch') return 'branch';
   if (item.priority?.trim()) return item.priority;
-  return item.amazon ? 'amazon' : 'node';
+  if (item.sale) return 'SALE';
+  if (item.priceChanged) return 'SHIFT';
+  return item.amazon ? 'AMAZON' : 'STASH';
 }
 
-function compactNodeTitle(title: string, limit = 24) {
-  return title.length > limit ? `${title.slice(0, limit - 1)}…` : title;
+function normalizeSection(section: string) {
+  return section?.trim() || 'Misc';
 }
 
-function NodeCard({ data, selected }: NodeProps<Node<SkillTreeNodeData>>) {
-  const item = data.item as DesireCacheItem;
-  const title = compactNodeTitle(itemTitle(item), item.status === 'item' ? 22 : 28);
-  const type = item.status || 'item';
-  const nodeColor = (data.nodeColor as string) || DEFAULT_NODE_COLOR;
-  const nodeClass = `skill-node skill-node--${type}${selected ? ' is-selected' : ''}`;
-
-  return (
-    <article className={nodeClass} style={{ ['--node-color' as string]: nodeColor }}>
-      <div className="skill-node__glow" />
-      <div className="skill-node__chrome" />
-      <div className="skill-node__content">
-        <p className="skill-node__type">{itemTypeLabel(item)}</p>
-        <h3>{title}</h3>
-        {type === 'item' ? (
-          <div className="skill-node__footer compact">
-            <span>{itemPrice(item)}</span>
-            <span>{item.image ? 'img' : 'fallback'}</span>
-          </div>
-        ) : (
-          <p className="skill-node__meta">{item.description}</p>
-        )}
-      </div>
-    </article>
-  );
+function normalizeSearchValue(item: DesireCacheItem) {
+  return [
+    itemTitle(item),
+    itemDescription(item),
+    normalizeSection(item.section),
+    branchLabelFor(item),
+    item.source,
+    item.size,
+    itemTypeLabel(item)
+  ]
+    .join(' ')
+    .toLowerCase();
 }
 
-const nodeTypes = {
-  skill: NodeCard
-};
+function itemAccentClass(item: DesireCacheItem) {
+  if (item.priority === 'HOT') return 'is-hot';
+  if (item.sale || item.priority === 'SALE') return 'is-sale';
+  if (item.priceChanged) return 'is-shift';
+  return 'is-normal';
+}
 
-function buildGraph(items: DesireCacheItem[]) {
-  const nodes: Node<SkillTreeNodeData>[] = [];
-  const edges: Edge[] = [];
-  const meta: GraphMeta = { sectionZones: [] };
-
-  const sectionMap = new Map<string, Map<string, DesireCacheItem[]>>();
+function groupByBranch(items: DesireCacheItem[]) {
+  const map = new Map<string, DesireCacheItem[]>();
 
   for (const item of items) {
-    const section = item.section?.trim() || 'Misc';
     const branch = branchLabelFor(item);
-
-    if (!sectionMap.has(section)) sectionMap.set(section, new Map());
-    const branchMap = sectionMap.get(section)!;
-    if (!branchMap.has(branch)) branchMap.set(branch, []);
-    branchMap.get(branch)!.push(item);
+    if (!map.has(branch)) map.set(branch, []);
+    map.get(branch)!.push(item);
   }
 
-  Array.from(sectionMap.entries()).forEach(([section, branches], sectionIndex) => {
-    const color = SECTION_COLORS[sectionIndex % SECTION_COLORS.length];
-    const sectionId = `section:${section}`;
-    const sectionColumn = sectionIndex % 2;
-    const sectionRow = Math.floor(sectionIndex / 2);
-    const sectionX = sectionColumn * (SECTION_WIDTH + SECTION_GAP_X);
-    const sectionY = sectionRow * (SECTION_HEIGHT + SECTION_GAP_Y);
-    const sectionNodeX = sectionX + 56;
-    const sectionNodeY = sectionY + 72;
-
-    meta.sectionZones.push({
-      id: sectionId,
-      label: sectionLabelFor(section),
-      color,
-      x: sectionX,
-      y: sectionY,
-      width: SECTION_WIDTH,
-      height: SECTION_HEIGHT,
-      branchCount: branches.size
-    });
-
-    nodes.push({
-      id: sectionId,
-      type: 'skill',
-      position: { x: sectionNodeX, y: sectionNodeY },
-      data: {
-        item: {
-          id: sectionId,
-          url: '',
-          title: sectionLabelFor(section),
-          titleOverride: '',
-          fetchedTitle: '',
-          description: `${branches.size} branch lanes online`,
-          fetchedDescription: '',
-          image: '',
-          section,
-          subsection: '',
-          priority: '',
-          size: '',
-          manualPrice: '',
-          lastSeenPrice: '',
-          effectivePrice: '',
-          sale: false,
-          saleOverride: false,
-          amazon: false,
-          source: '',
-          status: 'section',
-          hasMetadataError: false,
-          metadataError: '',
-          lastFetchedAt: ''
-        },
-        branchLabel: '',
-        sectionLabel: sectionLabelFor(section),
-        nodeColor: color
-      },
-      draggable: false,
-      selectable: true
-    });
-
-    Array.from(branches.entries()).forEach(([branch, branchItems], branchIndex) => {
-      const branchId = `branch:${section}:${branch}`;
-      const branchY = sectionY + 180 + branchIndex * 152;
-      const branchX = sectionX + 230;
-      const branchNodeX = branchX;
-      const branchNodeY = branchY;
-
-      nodes.push({
-        id: branchId,
-        type: 'skill',
-        position: { x: branchNodeX, y: branchNodeY },
-        data: {
-          item: {
-            id: branchId,
-            url: '',
-            title: branch,
-            titleOverride: '',
-            fetchedTitle: '',
-            description: `${branchItems.length} live nodes`,
-            fetchedDescription: '',
-            image: '',
-            section,
-            subsection: branch,
-            priority: '',
-            size: '',
-            manualPrice: '',
-            lastSeenPrice: '',
-            effectivePrice: '',
-            sale: false,
-            saleOverride: false,
-            amazon: false,
-            source: '',
-            status: 'branch',
-            hasMetadataError: false,
-            metadataError: '',
-            lastFetchedAt: ''
-          },
-          branchLabel: branch,
-          sectionLabel: sectionLabelFor(section),
-          nodeColor: color
-        },
-        draggable: false,
-        selectable: true
-      });
-
-      edges.push({
-        id: `edge:${sectionId}:${branchId}`,
-        source: sectionId,
-        target: branchId,
-        type: 'smoothstep',
-        animated: true,
-        markerEnd: { type: MarkerType.ArrowClosed, color },
-        style: { stroke: color, strokeWidth: 2.6, opacity: 0.8 }
-      });
-
-      const itemsPerRow = Math.max(1, Math.ceil(branchItems.length / 2));
-
-      branchItems.forEach((item, itemIndex) => {
-        const nodeId = `item:${item.id}`;
-        const itemRow = Math.floor(itemIndex / itemsPerRow);
-        const itemColumn = itemIndex % itemsPerRow;
-        const nodeX = sectionX + 520 + itemColumn * ITEM_COLUMN_WIDTH;
-        const nodeY = branchY - 20 + itemRow * ITEM_ROW_HEIGHT;
-
-        nodes.push({
-          id: nodeId,
-          type: 'skill',
-          position: { x: nodeX, y: nodeY },
-          data: {
-            item,
-            branchLabel: branch,
-            sectionLabel: sectionLabelFor(section),
-            nodeColor: color
-          },
-          draggable: false,
-          selectable: true
-        });
-
-        if (itemRow === 0) {
-          edges.push({
-            id: `edge:${branchId}:${nodeId}`,
-            source: branchId,
-            target: nodeId,
-            type: 'smoothstep',
-            markerEnd: { type: MarkerType.ArrowClosed, color },
-            style: { stroke: color, strokeWidth: 1.8, opacity: 0.42 }
-          });
-        }
-      });
-    });
-  });
-
-  return { nodes, edges, meta };
+  return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
 }
 
 function App() {
   const [payload, setPayload] = useState<DesireCachePayload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<DesireCacheItem | null>(null);
+  const [activeSection, setActiveSection] = useState<string>('ALL');
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     const controller = new AbortController();
@@ -308,115 +109,214 @@ function App() {
     return () => controller.abort();
   }, []);
 
-  const graph = useMemo(() => buildGraph(payload?.items ?? []), [payload]);
+  const sections = useMemo(() => {
+    const base = payload?.sections?.length ? payload.sections : Array.from(new Set((payload?.items ?? []).map((item) => normalizeSection(item.section))));
+    return base.map((section, index) => ({
+      id: section,
+      label: sectionLabelFor(section),
+      color: SECTION_COLORS[index % SECTION_COLORS.length]
+    }));
+  }, [payload]);
+
+  const filteredItems = useMemo(() => {
+    const lowerQuery = query.trim().toLowerCase();
+
+    return (payload?.items ?? []).filter((item) => {
+      const itemSection = normalizeSection(item.section);
+      if (activeSection !== 'ALL' && itemSection !== activeSection) return false;
+      if (lowerQuery && !normalizeSearchValue(item).includes(lowerQuery)) return false;
+      return true;
+    });
+  }, [payload, activeSection, query]);
+
+  const groupedBranches = useMemo(() => groupByBranch(filteredItems), [filteredItems]);
+
+  const activeSectionMeta = useMemo(() => {
+    if (activeSection === 'ALL') {
+      return {
+        label: 'All Sectors',
+        color: '#7dd3fc'
+      };
+    }
+
+    return sections.find((section) => section.id === activeSection) ?? {
+      label: sectionLabelFor(activeSection),
+      color: '#7dd3fc'
+    };
+  }, [activeSection, sections]);
 
   return (
-    <ReactFlowProvider>
-      <main className="app-shell">
-        <section className="hero-panel">
-          <div>
-            <p className="eyebrow">Desire Cache React Pivot</p>
-            <h1>Graph-native shop lattice</h1>
-            <p className="lede">
-              Clear section neighborhoods, branch rails, and compact nodes first. The board should read before it dazzles.
-            </p>
+    <main className="app-shell inventory-theme">
+      <section className="hero-panel shop-hero">
+        <div className="shop-hero__portrait">
+          <div className="portrait-shell">
+            <div className="portrait-mark">DC</div>
+            <div className="portrait-copy">
+              <p className="eyebrow">Desire Cache // Trade Deck</p>
+              <h1>Inventory-first browse pass</h1>
+              <p className="lede">
+                Dense item scan, strong dossier panel, and category framing first. Skill-tree DNA stays as subtle structure, not permanent clutter.
+              </p>
+            </div>
           </div>
-          <div className="stats-strip">
-            <span>{payload?.totalItems ?? 0} nodes</span>
-            <span>{payload?.sections.length ?? 0} sectors</span>
-            <span>{error ? 'feed degraded' : 'feed nominal'}</span>
-          </div>
-        </section>
+        </div>
 
-        <section className="workspace-panel">
-          <div className="flow-panel">
-            {graph.meta.sectionZones.map((zone) => (
-              <div
-                key={zone.id}
-                className="section-zone"
-                style={{
-                  left: zone.x,
-                  top: zone.y,
-                  width: zone.width,
-                  height: zone.height,
-                  ['--zone-color' as string]: zone.color
-                }}
+        <div className="shop-hero__stats">
+          <span>{payload?.totalItems ?? 0} total</span>
+          <span>{filteredItems.length} visible</span>
+          <span>{groupedBranches.length} lanes</span>
+          <span>{error ? 'feed degraded' : 'feed nominal'}</span>
+        </div>
+      </section>
+
+      <section className="shop-shell">
+        <aside className="section-rail panel-surface">
+          <div className="rail-header">
+            <p className="eyebrow">Sections</p>
+            <strong>Browse rails</strong>
+          </div>
+
+          <button
+            className={`rail-button ${activeSection === 'ALL' ? 'is-active' : ''}`}
+            onClick={() => setActiveSection('ALL')}
+            type="button"
+          >
+            <span>All Sectors</span>
+            <small>{payload?.totalItems ?? 0}</small>
+          </button>
+
+          {sections.map((section) => {
+            const count = (payload?.items ?? []).filter((item) => normalizeSection(item.section) === section.id).length;
+            return (
+              <button
+                key={section.id}
+                className={`rail-button ${activeSection === section.id ? 'is-active' : ''}`}
+                style={{ ['--section-color' as string]: section.color }}
+                onClick={() => setActiveSection(section.id)}
+                type="button"
               >
-                <div className="section-zone__header">
-                  <span>{zone.label}</span>
-                  <small>{zone.branchCount} branches</small>
+                <span>{section.label}</span>
+                <small>{count}</small>
+              </button>
+            );
+          })}
+        </aside>
+
+        <section className="inventory-panel panel-surface">
+          <header className="inventory-toolbar">
+            <div>
+              <p className="eyebrow">{activeSectionMeta.label}</p>
+              <h2>Trade inventory</h2>
+            </div>
+
+            <label className="search-shell">
+              <span>Search</span>
+              <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find an item, source, or lane" />
+            </label>
+          </header>
+
+          {error ? <div className="state-panel error">{error}</div> : null}
+
+          <div className="lane-stack">
+            {groupedBranches.map(([branch, items]) => (
+              <section key={branch} className="lane-panel">
+                <header className="lane-header">
+                  <div>
+                    <p className="lane-kicker">Lane</p>
+                    <h3>{branch}</h3>
+                  </div>
+                  <span>{items.length} items</span>
+                </header>
+
+                <div className="inventory-grid">
+                  {items.map((item) => (
+                    <button
+                      key={item.id}
+                      className={`item-card ${itemAccentClass(item)} ${selectedItem?.id === item.id ? 'is-selected' : ''}`}
+                      onClick={() => setSelectedItem(item)}
+                      onMouseEnter={() => setSelectedItem(item)}
+                      type="button"
+                    >
+                      <div className="item-card__image">
+                        {item.image ? <img src={item.image} alt="" loading="lazy" /> : <div className="image-fallback">NO PREVIEW</div>}
+                      </div>
+
+                      <div className="item-card__body">
+                        <div className="item-card__head">
+                          <p>{itemTypeLabel(item)}</p>
+                          <span>{item.size || branch}</span>
+                        </div>
+                        <h4>{itemTitle(item)}</h4>
+                        <div className="item-card__footer">
+                          <strong>{itemPrice(item)}</strong>
+                          <span>{item.source || 'Unknown source'}</span>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
                 </div>
-              </div>
+              </section>
             ))}
 
-            {error ? (
-              <div className="state-panel error overlay-state">{error}</div>
-            ) : (
-              <ReactFlow
-                nodes={graph.nodes}
-                edges={graph.edges}
-                nodeTypes={nodeTypes}
-                fitView
-                fitViewOptions={{ padding: 0.12, minZoom: 0.42 }}
-                defaultViewport={{ x: 0, y: 0, zoom: 0.52 }}
-                onNodeClick={(_, node) => setSelectedItem(node.data.item as DesireCacheItem)}
-                onNodeMouseEnter={(_, node) => {
-                  if ((node.data.item as DesireCacheItem).status === 'item') {
-                    setSelectedItem(node.data.item as DesireCacheItem);
-                  }
-                }}
-                minZoom={0.28}
-                maxZoom={1.35}
-                nodesDraggable={false}
-                nodesConnectable={false}
-                elementsSelectable
-                proOptions={{ hideAttribution: true }}
-              >
-                <MiniMap pannable zoomable nodeColor={(node) => String(node.data?.nodeColor ?? DEFAULT_NODE_COLOR)} />
-                <Controls />
-                <Background color="#15203a" gap={28} size={1.1} />
-              </ReactFlow>
-            )}
+            {!error && groupedBranches.length === 0 ? <div className="state-panel">No items match this filter state.</div> : null}
           </div>
+        </section>
 
-          <aside className="detail-panel">
-            {selectedItem ? (
-              <>
+        <aside className="detail-panel panel-surface dossier-panel" style={{ ['--section-color' as string]: activeSectionMeta.color }}>
+          {selectedItem ? (
+            <>
+              <div className="dossier-header">
                 <p className="detail-kicker">{sectionLabelFor(selectedItem.section || 'Misc')}</p>
-                <h2>{itemTitle(selectedItem)}</h2>
-                <p className="detail-copy">{itemDescription(selectedItem)}</p>
-                <dl>
-                  <div>
-                    <dt>Branch</dt>
-                    <dd>{branchLabelFor(selectedItem)}</dd>
-                  </div>
-                  <div>
-                    <dt>Price</dt>
-                    <dd>{itemPrice(selectedItem)}</dd>
-                  </div>
-                  <div>
-                    <dt>Source</dt>
-                    <dd>{selectedItem.source || 'Unknown'}</dd>
-                  </div>
-                  <div>
-                    <dt>Status</dt>
-                    <dd>{itemTypeLabel(selectedItem)}</dd>
-                  </div>
-                </dl>
-                {selectedItem.image ? <img className="detail-image" src={selectedItem.image} alt="" /> : null}
+                <span>{branchLabelFor(selectedItem)}</span>
+              </div>
+
+              <h2>{itemTitle(selectedItem)}</h2>
+              <p className="detail-copy">{itemDescription(selectedItem)}</p>
+
+              {selectedItem.image ? <img className="detail-image" src={selectedItem.image} alt="" /> : <div className="detail-image image-fallback large">NO PREVIEW</div>}
+
+              <dl>
+                <div>
+                  <dt>Price</dt>
+                  <dd>{itemPrice(selectedItem)}</dd>
+                </div>
+                <div>
+                  <dt>Source</dt>
+                  <dd>{selectedItem.source || 'Unknown'}</dd>
+                </div>
+                <div>
+                  <dt>Type</dt>
+                  <dd>{itemTypeLabel(selectedItem)}</dd>
+                </div>
+                <div>
+                  <dt>Status</dt>
+                  <dd>{selectedItem.priceChanged ? 'Price shifted' : selectedItem.sale ? 'Sale active' : 'Nominal'}</dd>
+                </div>
+              </dl>
+
+              <div className="purchase-shell">
+                <div className="purchase-shell__stepper">
+                  <button type="button">−</button>
+                  <strong>x1</strong>
+                  <button type="button">+</button>
+                </div>
                 {selectedItem.url ? (
-                  <a className="action-link" href={selectedItem.url} target="_blank" rel="noreferrer">
+                  <a className="action-link purchase-link" href={selectedItem.url} target="_blank" rel="noreferrer">
                     Open item dossier
                   </a>
-                ) : null}
-              </>
-            ) : (
-              <div className="state-panel">Select a node to inspect its dossier.</div>
-            )}
-          </aside>
-        </section>
-      </main>
-    </ReactFlowProvider>
+                ) : (
+                  <button className="action-link purchase-link is-disabled" type="button">
+                    Dossier unavailable
+                  </button>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="state-panel">Select an item to inspect its dossier.</div>
+          )}
+        </aside>
+      </section>
+    </main>
   );
 }
 
