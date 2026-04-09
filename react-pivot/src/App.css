@@ -52,10 +52,14 @@ h1 {
   letter-spacing: -0.04em;
 }
 
+h2,
 h3 {
   margin: 0;
-  font-size: 0.92rem;
-  line-height: 1.15;
+}
+
+h3 {
+  font-size: 0.82rem;
+  line-height: 1.1;
 }
 
 .lede {
@@ -97,7 +101,7 @@ h3 {
   position: relative;
   border-radius: 28px;
   overflow: hidden;
-  min-height: 72vh;
+  min-height: 76vh;
 }
 
 .flow-panel::before {
@@ -113,7 +117,41 @@ h3 {
 
 .flow-panel > * {
   position: relative;
+}
+
+.section-zone {
+  position: absolute;
+  border-radius: 34px;
+  border: 1px solid color-mix(in srgb, var(--zone-color) 32%, rgba(255, 255, 255, 0.08));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--zone-color) 12%, rgba(7, 11, 20, 0.9)), rgba(7, 11, 20, 0.32));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03), 0 20px 40px rgba(0, 0, 0, 0.22);
+  pointer-events: none;
   z-index: 2;
+}
+
+.section-zone__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 26px;
+  color: color-mix(in srgb, var(--zone-color) 78%, white);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.section-zone__header small {
+  color: #c7d5f7;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.overlay-state {
+  position: absolute;
+  left: 24px;
+  top: 24px;
+  z-index: 5;
 }
 
 .detail-panel {
@@ -193,7 +231,6 @@ h3 {
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  min-width: 150px;
   color: #f7fbff;
   transition: transform 140ms ease, filter 140ms ease;
 }
@@ -206,22 +243,22 @@ h3 {
 }
 
 .skill-node__glow {
-  background: radial-gradient(circle at top, color-mix(in srgb, var(--node-color) 40%, transparent), transparent 58%);
-  opacity: 0.8;
+  background: radial-gradient(circle at top, color-mix(in srgb, var(--node-color) 36%, transparent), transparent 60%);
+  opacity: 0.72;
 }
 
 .skill-node__chrome {
   inset: 1px;
   border-radius: inherit;
-  border: 1px solid color-mix(in srgb, var(--node-color) 36%, rgba(255, 255, 255, 0.08));
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.01));
+  border: 1px solid color-mix(in srgb, var(--node-color) 30%, rgba(255, 255, 255, 0.08));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.01));
 }
 
 .skill-node__content {
   position: relative;
   z-index: 2;
   display: grid;
-  gap: 8px;
+  gap: 7px;
 }
 
 .skill-node__type,
@@ -231,27 +268,31 @@ h3 {
 }
 
 .skill-node__type {
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   text-transform: uppercase;
   letter-spacing: 0.16em;
   color: color-mix(in srgb, var(--node-color) 72%, white);
 }
 
 .skill-node__meta {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: #afbddb;
 }
 
 .skill-node__footer {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  font-size: 0.68rem;
+  gap: 10px;
+  font-size: 0.64rem;
   color: #cfd9ef;
 }
 
+.skill-node__footer.compact span:last-child {
+  opacity: 0.7;
+}
+
 .skill-node--section {
-  width: 220px;
+  width: 200px;
   border-radius: 26px;
   padding: 18px 16px;
   background: linear-gradient(180deg, rgba(15, 24, 44, 0.96), rgba(6, 12, 24, 0.94));
@@ -259,19 +300,19 @@ h3 {
 }
 
 .skill-node--branch {
-  width: 190px;
+  width: 172px;
   border-radius: 999px;
-  padding: 14px 18px;
+  padding: 12px 16px;
   background: linear-gradient(180deg, rgba(16, 24, 42, 0.94), rgba(8, 13, 26, 0.94));
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--node-color) 35%, transparent), 0 16px 30px rgba(0, 0, 0, 0.36);
 }
 
 .skill-node--item {
-  width: 156px;
+  width: 142px;
   border-radius: 18px;
-  padding: 12px 12px 10px;
+  padding: 10px 11px 9px;
   background: linear-gradient(180deg, rgba(9, 15, 28, 0.96), rgba(5, 10, 18, 0.96));
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--node-color) 28%, transparent), 0 14px 28px rgba(0, 0, 0, 0.34);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--node-color) 24%, transparent), 0 12px 24px rgba(0, 0, 0, 0.32);
 }
 
 .skill-node.is-selected,
@@ -279,6 +320,15 @@ h3 {
 .react-flow__node:hover .skill-node {
   transform: translateY(-2px) scale(1.02);
   filter: saturate(1.08);
+}
+
+.react-flow {
+  z-index: 3;
+}
+
+.react-flow__renderer,
+.react-flow__viewport {
+  z-index: 3;
 }
 
 .react-flow__node {
@@ -292,7 +342,7 @@ h3 {
 }
 
 .react-flow__edge-path {
-  filter: drop-shadow(0 0 8px rgba(125, 211, 252, 0.18));
+  filter: drop-shadow(0 0 4px rgba(125, 211, 252, 0.12));
 }
 
 .react-flow__controls,

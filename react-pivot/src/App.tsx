@@ -24,6 +24,25 @@ const SECTION_ALIASES: Record<string, string> = {
 
 const SECTION_COLORS = ['#7dd3fc', '#c084fc', '#fb7185', '#4ade80', '#f59e0b', '#2dd4bf'];
 const DEFAULT_NODE_COLOR = '#7dd3fc';
+const SECTION_WIDTH = 1080;
+const SECTION_HEIGHT = 840;
+const SECTION_GAP_X = 360;
+const SECTION_GAP_Y = 260;
+const ITEM_ROW_HEIGHT = 92;
+const ITEM_COLUMN_WIDTH = 178;
+
+type GraphMeta = {
+  sectionZones: Array<{
+    id: string;
+    label: string;
+    color: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    branchCount: number;
+  }>;
+};
 
 function sectionLabelFor(section: string) {
   return SECTION_ALIASES[section.toLowerCase()] ?? section;
@@ -58,9 +77,13 @@ function itemTypeLabel(item: DesireCacheItem) {
   return item.amazon ? 'amazon' : 'node';
 }
 
+function compactNodeTitle(title: string, limit = 24) {
+  return title.length > limit ? `${title.slice(0, limit - 1)}…` : title;
+}
+
 function NodeCard({ data, selected }: NodeProps<Node<SkillTreeNodeData>>) {
   const item = data.item as DesireCacheItem;
-  const title = itemTitle(item);
+  const title = compactNodeTitle(itemTitle(item), item.status === 'item' ? 22 : 28);
   const type = item.status || 'item';
   const nodeColor = (data.nodeColor as string) || DEFAULT_NODE_COLOR;
   const nodeClass = `skill-node skill-node--${type}${selected ? ' is-selected' : ''}`;
@@ -73,13 +96,10 @@ function NodeCard({ data, selected }: NodeProps<Node<SkillTreeNodeData>>) {
         <p className="skill-node__type">{itemTypeLabel(item)}</p>
         <h3>{title}</h3>
         {type === 'item' ? (
-          <>
-            <p className="skill-node__meta">{data.branchLabel as string}</p>
-            <div className="skill-node__footer">
-              <span>{itemPrice(item)}</span>
-              <span>{item.image ? 'image' : 'fallback'}</span>
-            </div>
-          </>
+          <div className="skill-node__footer compact">
+            <span>{itemPrice(item)}</span>
+            <span>{item.image ? 'img' : 'fallback'}</span>
+          </div>
         ) : (
           <p className="skill-node__meta">{item.description}</p>
         )}
@@ -95,6 +115,7 @@ const nodeTypes = {
 function buildGraph(items: DesireCacheItem[]) {
   const nodes: Node<SkillTreeNodeData>[] = [];
   const edges: Edge[] = [];
+  const meta: GraphMeta = { sectionZones: [] };
 
   const sectionMap = new Map<string, Map<string, DesireCacheItem[]>>();
 
@@ -111,13 +132,28 @@ function buildGraph(items: DesireCacheItem[]) {
   Array.from(sectionMap.entries()).forEach(([section, branches], sectionIndex) => {
     const color = SECTION_COLORS[sectionIndex % SECTION_COLORS.length];
     const sectionId = `section:${section}`;
-    const sectionX = sectionIndex * 560;
-    const sectionY = 120 + (sectionIndex % 2) * 160;
+    const sectionColumn = sectionIndex % 2;
+    const sectionRow = Math.floor(sectionIndex / 2);
+    const sectionX = sectionColumn * (SECTION_WIDTH + SECTION_GAP_X);
+    const sectionY = sectionRow * (SECTION_HEIGHT + SECTION_GAP_Y);
+    const sectionNodeX = sectionX + 56;
+    const sectionNodeY = sectionY + 72;
+
+    meta.sectionZones.push({
+      id: sectionId,
+      label: sectionLabelFor(section),
+      color,
+      x: sectionX,
+      y: sectionY,
+      width: SECTION_WIDTH,
+      height: SECTION_HEIGHT,
+      branchCount: branches.size
+    });
 
     nodes.push({
       id: sectionId,
       type: 'skill',
-      position: { x: sectionX, y: sectionY },
+      position: { x: sectionNodeX, y: sectionNodeY },
       data: {
         item: {
           id: sectionId,
@@ -148,20 +184,21 @@ function buildGraph(items: DesireCacheItem[]) {
         sectionLabel: sectionLabelFor(section),
         nodeColor: color
       },
-      draggable: false
+      draggable: false,
+      selectable: true
     });
 
     Array.from(branches.entries()).forEach(([branch, branchItems], branchIndex) => {
       const branchId = `branch:${section}:${branch}`;
-      const branchColumn = branchIndex % 2;
-      const branchRow = Math.floor(branchIndex / 2);
-      const branchX = sectionX + 220 + branchColumn * 220;
-      const branchY = sectionY + 170 + branchRow * 260 + branchColumn * 36;
+      const branchY = sectionY + 180 + branchIndex * 152;
+      const branchX = sectionX + 230;
+      const branchNodeX = branchX;
+      const branchNodeY = branchY;
 
       nodes.push({
         id: branchId,
         type: 'skill',
-        position: { x: branchX, y: branchY },
+        position: { x: branchNodeX, y: branchNodeY },
         data: {
           item: {
             id: branchId,
@@ -192,7 +229,8 @@ function buildGraph(items: DesireCacheItem[]) {
           sectionLabel: sectionLabelFor(section),
           nodeColor: color
         },
-        draggable: false
+        draggable: false,
+        selectable: true
       });
 
       edges.push({
@@ -202,15 +240,17 @@ function buildGraph(items: DesireCacheItem[]) {
         type: 'smoothstep',
         animated: true,
         markerEnd: { type: MarkerType.ArrowClosed, color },
-        style: { stroke: color, strokeWidth: 2.4, opacity: 0.72 }
+        style: { stroke: color, strokeWidth: 2.6, opacity: 0.8 }
       });
+
+      const itemsPerRow = Math.max(1, Math.ceil(branchItems.length / 2));
 
       branchItems.forEach((item, itemIndex) => {
         const nodeId = `item:${item.id}`;
-        const itemColumn = itemIndex % 3;
-        const itemRow = Math.floor(itemIndex / 3);
-        const nodeX = branchX + 210 + itemColumn * 170 + itemRow * 12;
-        const nodeY = branchY + itemRow * 148 + (itemColumn - 1) * 22;
+        const itemRow = Math.floor(itemIndex / itemsPerRow);
+        const itemColumn = itemIndex % itemsPerRow;
+        const nodeX = sectionX + 520 + itemColumn * ITEM_COLUMN_WIDTH;
+        const nodeY = branchY - 20 + itemRow * ITEM_ROW_HEIGHT;
 
         nodes.push({
           id: nodeId,
@@ -222,22 +262,25 @@ function buildGraph(items: DesireCacheItem[]) {
             sectionLabel: sectionLabelFor(section),
             nodeColor: color
           },
-          draggable: false
+          draggable: false,
+          selectable: true
         });
 
-        edges.push({
-          id: `edge:${branchId}:${nodeId}`,
-          source: branchId,
-          target: nodeId,
-          type: 'smoothstep',
-          markerEnd: { type: MarkerType.ArrowClosed, color },
-          style: { stroke: color, strokeWidth: 1.65, opacity: 0.48 }
-        });
+        if (itemRow === 0) {
+          edges.push({
+            id: `edge:${branchId}:${nodeId}`,
+            source: branchId,
+            target: nodeId,
+            type: 'smoothstep',
+            markerEnd: { type: MarkerType.ArrowClosed, color },
+            style: { stroke: color, strokeWidth: 1.8, opacity: 0.42 }
+          });
+        }
       });
     });
   });
 
-  return { nodes, edges };
+  return { nodes, edges, meta };
 }
 
 function App() {
@@ -275,7 +318,7 @@ function App() {
             <p className="eyebrow">Desire Cache React Pivot</p>
             <h1>Graph-native shop lattice</h1>
             <p className="lede">
-              Compact nodes first, dossier on focus, and branch lanes that feel closer to a game perk board than a boxed dashboard.
+              Clear section neighborhoods, branch rails, and compact nodes first. The board should read before it dazzles.
             </p>
           </div>
           <div className="stats-strip">
@@ -287,23 +330,43 @@ function App() {
 
         <section className="workspace-panel">
           <div className="flow-panel">
+            {graph.meta.sectionZones.map((zone) => (
+              <div
+                key={zone.id}
+                className="section-zone"
+                style={{
+                  left: zone.x,
+                  top: zone.y,
+                  width: zone.width,
+                  height: zone.height,
+                  ['--zone-color' as string]: zone.color
+                }}
+              >
+                <div className="section-zone__header">
+                  <span>{zone.label}</span>
+                  <small>{zone.branchCount} branches</small>
+                </div>
+              </div>
+            ))}
+
             {error ? (
-              <div className="state-panel error">{error}</div>
+              <div className="state-panel error overlay-state">{error}</div>
             ) : (
               <ReactFlow
                 nodes={graph.nodes}
                 edges={graph.edges}
                 nodeTypes={nodeTypes}
                 fitView
-                fitViewOptions={{ padding: 0.16 }}
+                fitViewOptions={{ padding: 0.12, minZoom: 0.42 }}
+                defaultViewport={{ x: 0, y: 0, zoom: 0.52 }}
                 onNodeClick={(_, node) => setSelectedItem(node.data.item as DesireCacheItem)}
                 onNodeMouseEnter={(_, node) => {
                   if ((node.data.item as DesireCacheItem).status === 'item') {
                     setSelectedItem(node.data.item as DesireCacheItem);
                   }
                 }}
-                minZoom={0.3}
-                maxZoom={1.6}
+                minZoom={0.28}
+                maxZoom={1.35}
                 nodesDraggable={false}
                 nodesConnectable={false}
                 elementsSelectable
@@ -311,7 +374,7 @@ function App() {
               >
                 <MiniMap pannable zoomable nodeColor={(node) => String(node.data?.nodeColor ?? DEFAULT_NODE_COLOR)} />
                 <Controls />
-                <Background color="#15203a" gap={28} size={1.2} />
+                <Background color="#15203a" gap={28} size={1.1} />
               </ReactFlow>
             )}
           </div>
