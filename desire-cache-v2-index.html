@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DESIRE_CACHE.sys</title>
+    <link rel="stylesheet" href="style.css?v=18">
+</head>
+<body>
+    <div class="scanline"></div>
+    <div class="container">
+        <header>
+            <h1 class="glitch" data-text="DESIRE_CACHE.sys">DESIRE_CACHE.sys</h1>
+            <p class="subtitle">// GIFT_PROTOCOL</p>
+            <div class="status-bar">
+                <span id="item-count">0 objects</span>
+                <span>//</span>
+                <span>LAST_SYNC <span id="last-updated">pending</span></span>
+            </div>
+        </header>
+
+        <a href="https://www.amazon.com/hz/wishlist/ls/L1HBFOQJJCER" target="_blank" class="drone-banner" rel="noopener noreferrer">
+            <div class="drone-banner-stripe"></div>
+            <div class="drone-banner-content">
+                <span class="drone-banner-icon">🚁</span>
+                <span class="drone-banner-text">AMAZON_MATRIX <span class="drone-banner-separator">//</span> DRONE_SWARM_DEPLOYED</span>
+                <span class="drone-banner-icon">🚁</span>
+            </div>
+            <div class="drone-banner-stripe"></div>
+        </a>
+
+        <section class="control-panel">
+            <div class="control-group">
+                <label for="search-input">SEARCH</label>
+                <input id="search-input" type="text" placeholder="query objects, sections, vendors...">
+            </div>
+            <div class="control-group">
+                <label for="priority-filter">PRIORITY</label>
+                <select id="priority-filter">
+                    <option value="">ALL</option>
+                    <option value="HOT">HOT</option>
+                    <option value="SALE">SALE</option>
+                </select>
+            </div>
+        </section>
+
+        <main id="wishlist-container" class="wishlist-root"></main>
+
+        <div id="loading" class="loading" style="display:none;">
+            <span class="loading-text">INITIALIZING PROTOCOL...</span>
+        </div>
+        <div id="error" class="error" style="display:none;">
+            <span class="error-text">ERROR: CONNECTION FAILED</span>
+        </div>
+    </div>
+
+    <script src="script.js?v=18"></script>
+</body>
+</html>

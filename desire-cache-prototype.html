@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Desire Cache Prototype</title>
+  <style>
+    :root {
+      --bg: #06070b;
+      --panel: rgba(9, 13, 22, 0.82);
+      --line: rgba(93, 235, 255, 0.22);
+      --cyan: #5deaff;
+      --magenta: #ff4aa2;
+      --green: #8dff9a;
+      --amber: #ffcb76;
+      --text: #eefaff;
+      --muted: #9db5c8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(93,234,255,0.14), transparent 26%),
+        radial-gradient(circle at top right, rgba(255,74,162,0.14), transparent 24%),
+        linear-gradient(180deg, #05060a 0%, #0b0f18 100%);
+      color: var(--text);
+    }
+    .shell { max-width: 1520px; margin: 0 auto; padding: 28px; }
+    .panel {
+      position: relative;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      overflow: hidden;
+      box-shadow: 0 0 40px rgba(0,0,0,0.22);
+      margin-bottom: 22px;
+    }
+    .panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, transparent, rgba(93,234,255,0.04), transparent 60%);
+      pointer-events: none;
+    }
+    .hero { padding: 24px; }
+    .eyebrow { color: var(--green); letter-spacing: 0.18em; font-size: 0.74rem; }
+    h1 { margin: 8px 0 0; font-size: clamp(2.8rem, 6vw, 5.4rem); line-height: 0.92; }
+    h1 span { color: var(--cyan); }
+    .desc { max-width: 820px; color: var(--muted); }
+    .meta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .pill { border: 1px solid var(--line); padding: 7px 10px; font-size: 0.8rem; }
+    .section-title { display:flex; justify-content:space-between; align-items:center; padding: 16px 18px; border-bottom: 1px solid rgba(93,234,255,0.08); }
+    .section-title h2 { margin:0; font-size: 1rem; letter-spacing: 0.12em; }
+
+    .tree-board { padding: 20px; display: grid; gap: 18px; }
+    .tree-row { display: grid; grid-template-columns: 220px 1fr; gap: 16px; align-items: start; }
+    .module {
+      border: 1px solid rgba(141,255,154,0.2);
+      background: rgba(10,18,28,0.92);
+      padding: 14px;
+      min-height: 72px;
+    }
+    .module-title { color: var(--green); font-size: 0.78rem; letter-spacing: 0.14em; margin-bottom: 6px; }
+    .module-name { font-weight: 700; }
+    .rail {
+      border: 1px solid rgba(93,234,255,0.12);
+      background: rgba(7, 10, 17, 0.7);
+      padding: 14px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(140px, 1fr));
+      gap: 14px;
+      position: relative;
+    }
+    .rail::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(93,234,255,0.18), rgba(255,74,162,0.18));
+      transform: translateY(-50%);
+    }
+    .chip {
+      position: relative;
+      border: 1px solid rgba(93,234,255,0.28);
+      background: rgba(12,18,28,0.96);
+      padding: 12px;
+      min-height: 92px;
+      z-index: 1;
+    }
+    .chip.hot { border-color: rgba(255,74,162,0.8); }
+    .chip.sale { border-color: rgba(141,255,154,0.8); }
+    .chip.changed { border-color: rgba(255,203,118,0.8); }
+    .chip::before, .chip::after {
+      content: '';
+      position: absolute;
+      width: 12px; height: 12px;
+      border-style: solid; border-color: rgba(93,234,255,0.45);
+    }
+    .chip::before { left: 6px; top: 6px; border-width: 2px 0 0 2px; }
+    .chip::after { right: 6px; bottom: 6px; border-width: 0 2px 2px 0; }
+    .chip small { color: var(--cyan); display:block; margin-bottom:6px; }
+    .chip strong { display:block; }
+    .chip-meta { margin-top: 8px; display:flex; gap:8px; flex-wrap:wrap; color: var(--muted); font-size:0.78rem; }
+
+    .map-board { padding: 22px; }
+    .map-frame {
+      border: 1px solid rgba(93,234,255,0.12);
+      background:
+        linear-gradient(90deg, rgba(93,234,255,0.04) 1px, transparent 1px),
+        linear-gradient(rgba(93,234,255,0.04) 1px, transparent 1px),
+        radial-gradient(circle at center, rgba(8,12,18,0.92), rgba(4,6,10,0.98));
+      background-size: 28px 28px, 28px 28px, auto;
+      min-height: 740px;
+      position: relative;
+      overflow: hidden;
+    }
+    .circuit-block {
+      position: absolute;
+      border: 1px solid rgba(93,234,255,0.28);
+      background: rgba(11,17,26,0.95);
+      padding: 10px 12px;
+      min-width: 180px;
+    }
+    .circuit-block.section { left: 60px; width: 220px; }
+    .circuit-block.sub { left: 350px; width: 180px; border-color: rgba(141,255,154,0.24); }
+    .circuit-trace {
+      position: absolute;
+      background: linear-gradient(90deg, rgba(93,234,255,0.22), rgba(255,74,162,0.14));
+      height: 2px;
+      transform-origin: left center;
+    }
+    .socket-grid {
+      position: absolute;
+      left: 560px;
+      display: grid;
+      grid-template-columns: repeat(4, 110px);
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid rgba(93,234,255,0.1);
+      background: rgba(8, 11, 18, 0.55);
+    }
+    .socket {
+      border: 1px solid rgba(93,234,255,0.2);
+      background: rgba(12,18,28,0.94);
+      min-height: 82px;
+      position: relative;
+      padding: 10px;
+    }
+    .socket .dot {
+      width: 10px; height: 10px; border-radius: 50%; background: var(--cyan);
+      box-shadow: 0 0 14px rgba(93,234,255,0.35);
+      margin-bottom: 8px;
+    }
+    .socket.hot .dot { background: var(--magenta); }
+    .socket.sale .dot { background: var(--green); }
+    .socket.changed .dot { background: var(--amber); }
+    .socket-title { font-size: 0.78rem; color: var(--text); }
+    .hover-card {
+      position: absolute;
+      right: 32px;
+      top: 32px;
+      width: 240px;
+      border: 1px solid rgba(93,234,255,0.24);
+      background: rgba(9,13,22,0.96);
+      padding: 12px;
+    }
+    .hover-card img { width: 100%; height: 120px; object-fit: cover; margin-top: 8px; }
+    .hover-card .price { color: var(--amber); margin-top: 6px; }
+    @media (max-width: 1100px) {
+      .tree-row { grid-template-columns: 1fr; }
+      .rail { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="panel hero">
+      <div class="eyebrow">DESIRE_CACHE // VISUAL PROTOTYPE // NOT LIVE</div>
+      <h1>DESIRE_CACHE<span>.sys</span></h1>
+      <p class="desc">Prototype direction for a private cybernetic acquisition interface. Focus is on coherent visual language, not live data wiring.</p>
+      <div class="meta">
+        <div class="pill">TREE_MODE_V2</div>
+        <div class="pill">MAP_MODE_V2</div>
+        <div class="pill">DOSSIER_PREVIEW</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-title">
+        <h2>TREE MODE V2 // UPGRADE RAILS</h2>
+        <span class="pill">PRIMARY USABLE MODE</span>
+      </div>
+      <div class="tree-board">
+        <div class="tree-row">
+          <div class="module">
+            <div class="module-title">SECTION_MODULE</div>
+            <div class="module-name">COMFORT_STATUS_UPGRADES</div>
+          </div>
+          <div class="rail">
+            <div class="chip hot"><small>KITCHEN</small><strong>HORL3 Pro</strong><div class="chip-meta"><span>HOT</span><span>$?</span></div></div>
+            <div class="chip"><small>KITCHEN</small><strong>Premier Plush</strong><div class="chip-meta"><span>BEDDING</span><span>$?</span></div></div>
+            <div class="chip sale"><small>ELECTRICAL</small><strong>Desk Upgrade</strong><div class="chip-meta"><span>SALE</span><span>$?</span></div></div>
+            <div class="chip changed"><small>CAR</small><strong>Travel Module</strong><div class="chip-meta"><span>SHIFT</span><span>$?</span></div></div>
+          </div>
+        </div>
+        <div class="tree-row">
+          <div class="module">
+            <div class="module-title">SECTION_MODULE</div>
+            <div class="module-name">ABILITY_POINT_ADDITIONS</div>
+          </div>
+          <div class="rail">
+            <div class="chip hot"><small>LOCKPICKING</small><strong>Covert Companion</strong><div class="chip-meta"><span>HOT</span><span>$?</span></div></div>
+            <div class="chip"><small>MOBILE_SECURITY</small><strong>SIRT-115</strong><div class="chip-meta"><span>TRAINING</span><span>$?</span></div></div>
+            <div class="chip"><small>MOBILE_SECURITY</small><strong>Holosun</strong><div class="chip-meta"><span>OPTIC</span><span>$?</span></div></div>
+            <div class="chip hot"><small>MOBILE_SECURITY</small><strong>Shadow XR920</strong><div class="chip-meta"><span>HOT</span><span>$?</span></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-title">
+        <h2>MAP MODE V2 // CIRCUIT BOARD CLUSTERS</h2>
+        <span class="pill">EXPLORATION MODE</span>
+      </div>
+      <div class="map-board">
+        <div class="map-frame">
+          <div class="circuit-block section" style="top: 90px;">COMFORT_STATUS_UPGRADES</div>
+          <div class="circuit-block sub" style="top: 82px;">KITCHEN</div>
+          <div class="circuit-trace" style="left: 280px; top: 116px; width: 90px;"></div>
+          <div class="socket-grid" style="top: 58px;">
+            <div class="socket hot"><div class="dot"></div><div class="socket-title">HORL3 PRO</div></div>
+            <div class="socket"><div class="dot"></div><div class="socket-title">BLANKET</div></div>
+            <div class="socket sale"><div class="dot"></div><div class="socket-title">KETTLE</div></div>
+            <div class="socket changed"><div class="dot"></div><div class="socket-title">KNIFE_SET</div></div>
+          </div>
+
+          <div class="circuit-block section" style="top: 320px;">ABILITY_POINT_ADDITIONS</div>
+          <div class="circuit-block sub" style="top: 312px;">LOCKPICKING</div>
+          <div class="circuit-trace" style="left: 280px; top: 346px; width: 90px;"></div>
+          <div class="socket-grid" style="top: 288px; grid-template-columns: repeat(3, 110px);">
+            <div class="socket hot"><div class="dot"></div><div class="socket-title">COMPANION</div></div>
+            <div class="socket"><div class="dot"></div><div class="socket-title">FNG_PLUS</div></div>
+            <div class="socket"><div class="dot"></div><div class="socket-title">LATCH</div></div>
+          </div>
+
+          <div class="circuit-block section" style="top: 540px;">BIOMECHANICAL_SHELL</div>
+          <div class="circuit-block sub" style="top: 532px;">SHOES</div>
+          <div class="circuit-trace" style="left: 280px; top: 566px; width: 90px;"></div>
+          <div class="socket-grid" style="top: 508px; grid-template-columns: repeat(2, 110px);">
+            <div class="socket hot"><div class="dot"></div><div class="socket-title">LOW_TOPS_BROWN</div></div>
+            <div class="socket hot"><div class="dot"></div><div class="socket-title">LOW_TOPS_BLACK</div></div>
+          </div>
+
+          <div class="hover-card">
+            <div class="eyebrow">HOVER_PREVIEW</div>
+            <strong>HORL3 PRO</strong>
+            <div class="desc">Compact preview with vendor, price, tags, and image. Thumbnails live here, not inside the node geometry.</div>
+            <div class="price">$ UNKNOWN</div>
+            <img src="https://images.unsplash.com/photo-1517705008128-361805f42e86?auto=format&fit=crop&w=600&q=80" alt="preview">
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

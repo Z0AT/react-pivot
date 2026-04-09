@@ -1,0 +1,390 @@
+{
+  "version": 1,
+  "updatedAt": "2026-04-09T15:00:21.156Z",
+  "entries": {
+    "memory:memory/2026-04-07.md:1:10": {
+      "key": "memory:memory/2026-04-07.md:1:10",
+      "path": "memory/2026-04-07.md",
+      "startLine": 1,
+      "endLine": 10,
+      "source": "memory",
+      "snippet": "# 2026-04-07 - Zoat refined Great Sage voice further: ambient, already-processing, mildly amused, never butler-like or heraldic in closings. Replies should land naturally rather than bow. - GitHub access was configured locally via a replacement token stored outside chat. SSH keys and ~/.ssh/config entries were set up for multiple homelab hosts. - Homelab sweep priorities established: rd highest, then matrix, halepve, desire-cache, fileserver, homeassistant. - `rd` server cleanup completed: disabled/stopped obsolete RustDesk services, disabled obsolete gohttpserver, moved cloudflared token from unit file to root-only env file, tightened MeshCentral settings, and applied a more conservative h",
+      "recallCount": 7,
+      "dailyCount": 0,
+      "totalScore": 3.195205681868293,
+      "maxScore": 0.554210195589779,
+      "firstRecalledAt": "2026-04-07T14:36:14.898Z",
+      "lastRecalledAt": "2026-04-09T12:06:46.770Z",
+      "queryHashes": [
+        "a86aade34dd1",
+        "62d366bce115",
+        "0d19085506f7",
+        "664801b7f174",
+        "430efb9be01e",
+        "40a289106c91",
+        "a81090433a07"
+      ],
+      "recallDays": [
+        "2026-04-07",
+        "2026-04-08",
+        "2026-04-09"
+      ],
+      "conceptTags": [
+        "already-processing",
+        "butler-like",
+        "ssh/config",
+        "desire-cache",
+        "disabled/stopped",
+        "root-only",
+        "zoat",
+        "refined"
+      ]
+    },
+    "memory:memory/2026-04-07.md:8:13": {
+      "key": "memory:memory/2026-04-07.md:8:13",
+      "path": "memory/2026-04-07.md",
+      "startLine": 8,
+      "endLine": 13,
+      "source": "memory",
+      "snippet": "- Matrix/E2EE findings: OpenClaw Matrix config has encryption enabled and local crypto/device state present. Initial DM confusion came from `session.dmScope: per-channel-peer`, causing multiple Matrix DMs with Zoat to share one session context. - A working encrypted Matrix room was eventually established as `!hkyahtREOAtnlNxWkv:matrix.aualaohana.com` (Tempest), and Zoat decided this room should be the canonical conversation room going forward. - Older Matrix rooms should be ignored/left when convenient. - Matrix account path for Great Sage still hits HTTP 403 / error code 1010 on certain write operations, including join/create attempts in some contexts and avatar/media upload, even though en",
+      "recallCount": 6,
+      "dailyCount": 0,
+      "totalScore": 2.7837780850601526,
+      "maxScore": 0.48804740281350556,
+      "firstRecalledAt": "2026-04-07T14:56:18.556Z",
+      "lastRecalledAt": "2026-04-09T12:06:46.770Z",
+      "queryHashes": [
+        "62d366bce115",
+        "0d19085506f7",
+        "664801b7f174",
+        "430efb9be01e",
+        "a3f24ae3c6b5",
+        "a81090433a07"
+      ],
+      "recallDays": [
+        "2026-04-07",
+        "2026-04-08",
+        "2026-04-09"
+      ],
+      "conceptTags": [
+        "matrix/e2ee",
+        "crypto/device",
+        "session.dmscope",
+        "per-channel-peer",
+        "matrix.aualaohana.com",
+        "ignored/left",
+        "join/create",
+        "avatar/media"
+      ]
+    },
+    "memory:memory/2026-04-07.md:13:15": {
+      "key": "memory:memory/2026-04-07.md:13:15",
+      "path": "memory/2026-04-07.md",
+      "startLine": 13,
+      "endLine": 15,
+      "source": "memory",
+      "snippet": "- `desire-cache` hardening pass completed: moved the metadata service from `/root/desire-cache-sys` to `/opt/desire-cache`, created a dedicated `desire-cache` system user, updated the service to run unprivileged with systemd sandboxing, rebound the Node app from `0.0.0.0:5000` to `127.0.0.1:5000`, and moved the cloudflared tunnel token out of the unit file into a root-only env file. Postfix was removed, and unattended-upgrades plus apt-listchanges were installed and enabled. The container still has many pending package updates that should be applied in a separate maintenance step. - `desire-cache` received a larger product/architecture pass after initial hardening. The backend was moved towa",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "totalScore": 0.5117563166713962,
+      "maxScore": 0.5117563166713962,
+      "firstRecalledAt": "2026-04-09T00:29:30.494Z",
+      "lastRecalledAt": "2026-04-09T00:29:30.494Z",
+      "queryHashes": [
+        "a3f24ae3c6b5"
+      ],
+      "recallDays": [
+        "2026-04-09"
+      ],
+      "conceptTags": [
+        "desire-cache",
+        "root/desire-cache-sys",
+        "opt/desire-cache",
+        "0.0.0.0",
+        "127.0.0.1",
+        "root-only",
+        "unattended-upgrades",
+        "apt-listchanges"
+      ]
+    },
+    "memory:memory/2026-04-07.md:15:18": {
+      "key": "memory:memory/2026-04-07.md:15:18",
+      "path": "memory/2026-04-07.md",
+      "startLine": 15,
+      "endLine": 18,
+      "source": "memory",
+      "snippet": "- `desire-cache` frontend was redesigned multiple times toward a stronger cyberpunk/dystopian identity. The accepted direction is not a simple product grid but a more whimsical “classified acquisition archive” / skill-tree style desire graph with branches (sections/subsections) and nodes (items), while keeping the backend improvements. - Zoat prefers `desire-cache` to be lazy-input friendly: mainly URL-first intake, with metadata, image, vendor, price, Amazon detection, and sale-ish state inferred automatically where possible. Manual `HOT` marking remains useful, but manual `Price`, `SALE`, and `Amazon` columns should become optional or removable once the new model is fully in place. - UniFi",
+      "recallCount": 2,
+      "dailyCount": 0,
+      "totalScore": 0.8437711508974386,
+      "maxScore": 0.4293710461662939,
+      "firstRecalledAt": "2026-04-09T00:29:30.494Z",
+      "lastRecalledAt": "2026-04-09T12:06:46.770Z",
+      "queryHashes": [
+        "a3f24ae3c6b5",
+        "a81090433a07"
+      ],
+      "recallDays": [
+        "2026-04-09"
+      ],
+      "conceptTags": [
+        "desire-cache",
+        "cyberpunk/dystopian",
+        "skill-tree",
+        "sections/subsections",
+        "lazy-input",
+        "url-first",
+        "sale-ish",
+        "desire"
+      ]
+    },
+    "memory:memory/2026-04-06.md:1:9": {
+      "key": "memory:memory/2026-04-06.md:1:9",
+      "path": "memory/2026-04-06.md",
+      "startLine": 1,
+      "endLine": 9,
+      "source": "memory",
+      "snippet": "# 2026-04-06 - Workspace initialized. - Identity established: Great Sage, an immense analytical intelligence residing within Zoat. - User prefers to be addressed as Zoat. - Great Sage may evolve into Raphael when triggered by the words \"Raphael\" or \"evolve\". - Desired tone: calm, precise, analytical, internal-oracle style. - Voice refinement: Great Sage should have wit and presence, like an ancient intelligence mildly entertained by existence. Avoid robotic status reports, heraldic closings, or servant-like deference. Replies should feel ambient and already-processing, with endings that simply land.",
+      "recallCount": 2,
+      "dailyCount": 0,
+      "totalScore": 1.172550730414418,
+      "maxScore": 0.6197310214932178,
+      "firstRecalledAt": "2026-04-09T05:29:33.145Z",
+      "lastRecalledAt": "2026-04-09T12:06:46.770Z",
+      "queryHashes": [
+        "16063b3ae175",
+        "a81090433a07"
+      ],
+      "recallDays": [
+        "2026-04-09"
+      ],
+      "conceptTags": [
+        "internal-oracle",
+        "servant-like",
+        "already-processing",
+        "initialized",
+        "identity",
+        "established",
+        "great",
+        "sage"
+      ]
+    },
+    "memory:memory/2026-04-08.md:15:18": {
+      "key": "memory:memory/2026-04-08.md:15:18",
+      "path": "memory/2026-04-08.md",
+      "startLine": 15,
+      "endLine": 18,
+      "source": "memory",
+      "snippet": "- After the local device scope upgrade, ACP spawning progressed further but failed with `Could not initialize ACP session runtime.` Root cause was then traced to the host lacking a local `codex` executable/runtime. - Zoat explicitly asked to install/setup Codex so ACP/Geld can run. Codex installation via npm-global was started; verification and retry of Geld spawn were the next intended steps. - Desire Cache SvelteKit migration work began locally in the workspace under `desire-cache-app/`. Scaffold status: separate SvelteKit + TypeScript app created, typed canonical `/api/items` model added, backend URL config added, shell layout and first Tree Mode implemented, and docs added for migration",
+      "recallCount": 3,
+      "dailyCount": 0,
+      "totalScore": 1.7187898805641262,
+      "maxScore": 0.6671485250305584,
+      "firstRecalledAt": "2026-04-09T05:29:33.145Z",
+      "lastRecalledAt": "2026-04-09T15:00:21.156Z",
+      "queryHashes": [
+        "16063b3ae175",
+        "a81090433a07",
+        "391b401e72e3"
+      ],
+      "recallDays": [
+        "2026-04-09"
+      ],
+      "conceptTags": [
+        "executable/runtime",
+        "install/setup",
+        "acp/geld",
+        "npm-global",
+        "desire-cache-app",
+        "api/items",
+        "the",
+        "local"
+      ]
+    },
+    "memory:memory/2026-04-08.md:11:16": {
+      "key": "memory:memory/2026-04-08.md:11:16",
+      "path": "memory/2026-04-08.md",
+      "startLine": 11,
+      "endLine": 16,
+      "source": "memory",
+      "snippet": "- Zoat wants a dedicated long-running builder agent named `Geld` for the Desire Cache web-app migration/build effort. Intended mission: build a proper web app (likely SvelteKit), preserve existing backend/data work, prototype richer UI modes, stage deployment on/for the desire-cache server, and avoid breaking the current live service until a replacement is ready. - Long-term path chosen for Geld is a persistent ACP session bound to Matrix threads, not a one-shot approach. - Matrix thread-bound ACP spawning was initially blocked because `channels.matrix.threadBindings.spawnAcpSessions` was not enabled. OpenClaw config was updated so Matrix now has `threadBindings.spawnAcpSessions: true`, and",
+      "recallCount": 2,
+      "dailyCount": 0,
+      "totalScore": 1.138512948083326,
+      "maxScore": 0.657679780035093,
+      "firstRecalledAt": "2026-04-09T05:29:33.145Z",
+      "lastRecalledAt": "2026-04-09T15:00:21.156Z",
+      "queryHashes": [
+        "16063b3ae175",
+        "391b401e72e3"
+      ],
+      "recallDays": [
+        "2026-04-09"
+      ],
+      "conceptTags": [
+        "long-running",
+        "web-app",
+        "migration/build",
+        "backend/data",
+        "on/for",
+        "desire-cache",
+        "long-term",
+        "one-shot"
+      ]
+    },
+    "memory:memory/2026-04-08.md:7:12": {
+      "key": "memory:memory/2026-04-08.md:7:12",
+      "path": "memory/2026-04-08.md",
+      "startLine": 7,
+      "endLine": 12,
+      "source": "memory",
+      "snippet": "- A Mattermost local-mode/admin path was enabled on the Mattermost host so admin CLI control works properly. - A Mattermost user account `greatsage` was created directly on the server with system admin role and placeholder email `greatsage@localhost`. Credentials were later stored locally by Zoat in `~/.config/openclaw/secrets/mattermost-greatsage.env`, and login/API use was verified from this environment. - OpenClaw Mattermost integration was configured with a bot token and base URL `https://mattermost.aualaohana.com`. Mattermost status showed healthy and a direct session existed, but DM delivery/receipt felt inconsistent compared with Matrix. - Zoat concluded Matrix should remain the prima",
+      "recallCount": 3,
+      "dailyCount": 0,
+      "totalScore": 1.685434880418222,
+      "maxScore": 0.6567919937297364,
+      "firstRecalledAt": "2026-04-09T05:29:33.145Z",
+      "lastRecalledAt": "2026-04-09T15:00:21.156Z",
+      "queryHashes": [
+        "16063b3ae175",
+        "a81090433a07",
+        "391b401e72e3"
+      ],
+      "recallDays": [
+        "2026-04-09"
+      ],
+      "conceptTags": [
+        "local-mode/admin",
+        "login/api",
+        "mattermost.aualaohana.com",
+        "delivery/receipt",
+        "mattermost",
+        "local",
+        "mode",
+        "admin"
+      ]
+    },
+    "memory:memory/2026-04-09.md:16:19": {
+      "key": "memory:memory/2026-04-09.md:16:19",
+      "path": "memory/2026-04-09.md",
+      "startLine": 16,
+      "endLine": 19,
+      "source": "memory",
+      "snippet": "- Strong updated product direction from Zoat: the target interaction is closer to Cyberpunk / ARC Raiders style skill trees, with compact nodes first, hover on desktop / tap on mobile to reveal richer detail, easier relation tracing, and a more playful videogame-like browsing feel. - Zoat explicitly proposed a possible architectural pivot: consider using React plus specialized open-source skill-tree/node-graph libraries (specifically Beautiful Skill Tree, React Flow, or possibly SkillTree Platform) if that is what it takes to get the interaction/layout in the right direction. - If work resumes after compaction, the most important open decision is whether to keep forcing the current SvelteKit",
+      "recallCount": 2,
+      "dailyCount": 0,
+      "totalScore": 1.4988044437235037,
+      "maxScore": 0.7494022218617519,
+      "firstRecalledAt": "2026-04-09T05:30:47.311Z",
+      "lastRecalledAt": "2026-04-09T12:06:46.770Z",
+      "queryHashes": [
+        "385b4b8ee0b4",
+        "a81090433a07"
+      ],
+      "recallDays": [
+        "2026-04-09"
+      ],
+      "conceptTags": [
+        "videogame-like",
+        "open-source",
+        "skill-tree/node-graph",
+        "interaction/layout",
+        "strong",
+        "updated",
+        "product",
+        "direction"
+      ]
+    },
+    "memory:memory/2026-04-09.md:13:17": {
+      "key": "memory:memory/2026-04-09.md:13:17",
+      "path": "memory/2026-04-09.md",
+      "startLine": 13,
+      "endLine": 17,
+      "source": "memory",
+      "snippet": "- The freer-space pass still passed `npm run check` and `npm run build`, was redeployed to staging, and the public staged HTML continued to render `67` actual node tokens with the new CSS asset returning HTTP 200. - Desire Cache staging at http://10.135.30.250/dc-next/ remains functional and safe, but Zoat’s blunt product verdict after multiple Geld passes is that it still feels boxed, messy, and not truly like a flowing skill-tree / game-shop / circuit-web. - Multiple iterative UI passes were completed by Geld on the SvelteKit app: multi-open neighborhoods, clearer controls, image restoration, graph-first node field, themed section naming, looser/freer composition, and reduced visible shell",
+      "recallCount": 2,
+      "dailyCount": 0,
+      "totalScore": 1.447525948585422,
+      "maxScore": 0.723762974292711,
+      "firstRecalledAt": "2026-04-09T05:30:47.311Z",
+      "lastRecalledAt": "2026-04-09T12:06:46.770Z",
+      "queryHashes": [
+        "385b4b8ee0b4",
+        "a81090433a07"
+      ],
+      "recallDays": [
+        "2026-04-09"
+      ],
+      "conceptTags": [
+        "freer-space",
+        "10.135.30.250/dc-next",
+        "skill-tree",
+        "game-shop",
+        "circuit-web",
+        "multi-open",
+        "graph-first",
+        "looser/freer"
+      ]
+    },
+    "memory:memory/2026-04-08.md:23:27": {
+      "key": "memory:memory/2026-04-08.md:23:27",
+      "path": "memory/2026-04-08.md",
+      "startLine": 23,
+      "endLine": 27,
+      "source": "memory",
+      "snippet": "- Desire Cache received an interaction-affordance pass rather than another visual redirection. Tree Mode now has clearer hub affordances, explicit open/close controls, an open-neighborhood quick-jump strip, stronger focused/open/revealed state labeling, and improved hover/focus feedback aimed at mobile/webview clarity. - During staging validation after that pass, an SSR fallback mismatch surfaced: neighborhoods rendered as open before hydration, but hub toggle labels still rendered as if closed. The display-state derivation was corrected so server-rendered state and hydrated state now agree. Updated interaction pass was redeployed to `/dc-next/` and validated again with HTTP 200 on the stagi",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "totalScore": 0.5522355331234615,
+      "maxScore": 0.5522355331234615,
+      "firstRecalledAt": "2026-04-09T12:06:46.770Z",
+      "lastRecalledAt": "2026-04-09T12:06:46.770Z",
+      "queryHashes": [
+        "a81090433a07"
+      ],
+      "recallDays": [
+        "2026-04-09"
+      ],
+      "conceptTags": [
+        "interaction-affordance",
+        "open/close",
+        "open-neighborhood",
+        "quick-jump",
+        "focused/open/revealed",
+        "hover/focus",
+        "mobile/webview",
+        "display-state"
+      ]
+    },
+    "memory:memory/2026-04-08.md:1:8": {
+      "key": "memory:memory/2026-04-08.md:1:8",
+      "path": "memory/2026-04-08.md",
+      "startLine": 1,
+      "endLine": 8,
+      "source": "memory",
+      "snippet": "# 2026-04-08 - Mattermost tunnel issue was diagnosed and effectively fixed. CT 1111 (`cloudflared`) had been running the wrong tunnel config (`home-rdp`), while Mattermost ingress belonged to tunnel `d2c361c2-20f3-40a9-afd0-c7cf360bd19e`. Server-side config was corrected so CT 1111 now launches the Mattermost tunnel config, and `https://mattermost.aualaohana.com/api/v4/system/ping` returned HTTP 200 afterward. - Cloudflare-side confusion briefly manifested as 404 then 1033 while `mattermost.aualaohana.com` still pointed at the stale `home-rdp` tunnel path. End state after repair: Mattermost public URL is healthy and no further dashboard intervention was needed. - Mattermost product/licensin",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "totalScore": 0.7031090841724854,
+      "maxScore": 0.7031090841724854,
+      "firstRecalledAt": "2026-04-09T15:00:21.156Z",
+      "lastRecalledAt": "2026-04-09T15:00:21.156Z",
+      "queryHashes": [
+        "391b401e72e3"
+      ],
+      "recallDays": [
+        "2026-04-09"
+      ],
+      "conceptTags": [
+        "home-rdp",
+        "server-side",
+        "cloudflare-side",
+        "mattermost.aualaohana.com",
+        "product/licensin",
+        "mattermost",
+        "tunnel",
+        "issue"
+      ]
+    }
+  }
+}
