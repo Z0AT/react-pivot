@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   Background,
   Controls,
+  MarkerType,
   MiniMap,
   ReactFlow,
   ReactFlowProvider,
   type Edge,
-  type Node
+  type Node,
+  type NodeProps
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import './App.css';
@@ -21,6 +23,7 @@ const SECTION_ALIASES: Record<string, string> = {
 };
 
 const SECTION_COLORS = ['#7dd3fc', '#c084fc', '#fb7185', '#4ade80', '#f59e0b', '#2dd4bf'];
+const DEFAULT_NODE_COLOR = '#7dd3fc';
 
 function sectionLabelFor(section: string) {
   return SECTION_ALIASES[section.toLowerCase()] ?? section;
@@ -44,6 +47,51 @@ function itemDescription(item: DesireCacheItem) {
   return item.description?.trim() || item.fetchedDescription?.trim() || 'No dossier text yet.';
 }
 
+function itemPrice(item: DesireCacheItem) {
+  return item.effectivePrice || item.manualPrice || item.lastSeenPrice || 'Unknown';
+}
+
+function itemTypeLabel(item: DesireCacheItem) {
+  if (item.status === 'section') return 'section';
+  if (item.status === 'branch') return 'branch';
+  if (item.priority?.trim()) return item.priority;
+  return item.amazon ? 'amazon' : 'node';
+}
+
+function NodeCard({ data, selected }: NodeProps<Node<SkillTreeNodeData>>) {
+  const item = data.item as DesireCacheItem;
+  const title = itemTitle(item);
+  const type = item.status || 'item';
+  const nodeColor = (data.nodeColor as string) || DEFAULT_NODE_COLOR;
+  const nodeClass = `skill-node skill-node--${type}${selected ? ' is-selected' : ''}`;
+
+  return (
+    <article className={nodeClass} style={{ ['--node-color' as string]: nodeColor }}>
+      <div className="skill-node__glow" />
+      <div className="skill-node__chrome" />
+      <div className="skill-node__content">
+        <p className="skill-node__type">{itemTypeLabel(item)}</p>
+        <h3>{title}</h3>
+        {type === 'item' ? (
+          <>
+            <p className="skill-node__meta">{data.branchLabel as string}</p>
+            <div className="skill-node__footer">
+              <span>{itemPrice(item)}</span>
+              <span>{item.image ? 'image' : 'fallback'}</span>
+            </div>
+          </>
+        ) : (
+          <p className="skill-node__meta">{item.description}</p>
+        )}
+      </div>
+    </article>
+  );
+}
+
+const nodeTypes = {
+  skill: NodeCard
+};
+
 function buildGraph(items: DesireCacheItem[]) {
   const nodes: Node<SkillTreeNodeData>[] = [];
   const edges: Edge[] = [];
@@ -63,11 +111,12 @@ function buildGraph(items: DesireCacheItem[]) {
   Array.from(sectionMap.entries()).forEach(([section, branches], sectionIndex) => {
     const color = SECTION_COLORS[sectionIndex % SECTION_COLORS.length];
     const sectionId = `section:${section}`;
-    const sectionX = sectionIndex * 420;
-    const sectionY = 80 + (sectionIndex % 2) * 120;
+    const sectionX = sectionIndex * 560;
+    const sectionY = 120 + (sectionIndex % 2) * 160;
 
     nodes.push({
       id: sectionId,
+      type: 'skill',
       position: { x: sectionX, y: sectionY },
       data: {
         item: {
@@ -76,7 +125,7 @@ function buildGraph(items: DesireCacheItem[]) {
           title: sectionLabelFor(section),
           titleOverride: '',
           fetchedTitle: '',
-          description: `${branches.size} branches`,
+          description: `${branches.size} branch lanes online`,
           fetchedDescription: '',
           image: '',
           section,
@@ -96,25 +145,22 @@ function buildGraph(items: DesireCacheItem[]) {
           lastFetchedAt: ''
         },
         branchLabel: '',
-        sectionLabel: sectionLabelFor(section)
+        sectionLabel: sectionLabelFor(section),
+        nodeColor: color
       },
-      style: {
-        background: `radial-gradient(circle at top, ${color}55, #0b1020)`,
-        color: '#f5f7ff',
-        border: `1px solid ${color}`,
-        borderRadius: '18px',
-        width: 210,
-        boxShadow: `0 0 30px ${color}33`
-      }
+      draggable: false
     });
 
     Array.from(branches.entries()).forEach(([branch, branchItems], branchIndex) => {
       const branchId = `branch:${section}:${branch}`;
-      const branchX = sectionX + 220 + (branchIndex % 2) * 180;
-      const branchY = sectionY + branchIndex * 180 + 40;
+      const branchColumn = branchIndex % 2;
+      const branchRow = Math.floor(branchIndex / 2);
+      const branchX = sectionX + 220 + branchColumn * 220;
+      const branchY = sectionY + 170 + branchRow * 260 + branchColumn * 36;
 
       nodes.push({
         id: branchId,
+        type: 'skill',
         position: { x: branchX, y: branchY },
         data: {
           item: {
@@ -123,7 +169,7 @@ function buildGraph(items: DesireCacheItem[]) {
             title: branch,
             titleOverride: '',
             fetchedTitle: '',
-            description: `${branchItems.length} nodes`,
+            description: `${branchItems.length} live nodes`,
             fetchedDescription: '',
             image: '',
             section,
@@ -143,55 +189,49 @@ function buildGraph(items: DesireCacheItem[]) {
             lastFetchedAt: ''
           },
           branchLabel: branch,
-          sectionLabel: sectionLabelFor(section)
+          sectionLabel: sectionLabelFor(section),
+          nodeColor: color
         },
-        style: {
-          background: '#12182a',
-          color: '#dbe4ff',
-          border: `1px solid ${color}99`,
-          borderRadius: '999px',
-          width: 180,
-          boxShadow: '0 10px 30px rgba(0,0,0,0.28)'
-        }
+        draggable: false
       });
 
       edges.push({
         id: `edge:${sectionId}:${branchId}`,
         source: sectionId,
         target: branchId,
+        type: 'smoothstep',
         animated: true,
-        style: { stroke: color, strokeWidth: 2, opacity: 0.7 }
+        markerEnd: { type: MarkerType.ArrowClosed, color },
+        style: { stroke: color, strokeWidth: 2.4, opacity: 0.72 }
       });
 
       branchItems.forEach((item, itemIndex) => {
         const nodeId = `item:${item.id}`;
-        const nodeX = branchX + 220 + (itemIndex % 3) * 170;
-        const nodeY = branchY + Math.floor(itemIndex / 3) * 130 - (itemIndex % 2) * 24;
+        const itemColumn = itemIndex % 3;
+        const itemRow = Math.floor(itemIndex / 3);
+        const nodeX = branchX + 210 + itemColumn * 170 + itemRow * 12;
+        const nodeY = branchY + itemRow * 148 + (itemColumn - 1) * 22;
 
         nodes.push({
           id: nodeId,
+          type: 'skill',
           position: { x: nodeX, y: nodeY },
           data: {
             item,
             branchLabel: branch,
-            sectionLabel: sectionLabelFor(section)
+            sectionLabel: sectionLabelFor(section),
+            nodeColor: color
           },
-          style: {
-            background: '#0c1324',
-            color: '#f8fbff',
-            border: `1px solid ${color}66`,
-            borderRadius: '16px',
-            width: 160,
-            padding: '8px 10px',
-            boxShadow: '0 12px 28px rgba(0,0,0,0.32)'
-          }
+          draggable: false
         });
 
         edges.push({
           id: `edge:${branchId}:${nodeId}`,
           source: branchId,
           target: nodeId,
-          style: { stroke: color, strokeWidth: 1.5, opacity: 0.55 }
+          type: 'smoothstep',
+          markerEnd: { type: MarkerType.ArrowClosed, color },
+          style: { stroke: color, strokeWidth: 1.65, opacity: 0.48 }
         });
       });
     });
@@ -233,14 +273,14 @@ function App() {
         <section className="hero-panel">
           <div>
             <p className="eyebrow">Desire Cache React Pivot</p>
-            <h1>Game-space skill tree prototype</h1>
+            <h1>Graph-native shop lattice</h1>
             <p className="lede">
-              React Flow first, Beautiful Skill Tree available as a secondary reference, canonical data still from /api/items.
+              Compact nodes first, dossier on focus, and branch lanes that feel closer to a game perk board than a boxed dashboard.
             </p>
           </div>
           <div className="stats-strip">
             <span>{payload?.totalItems ?? 0} nodes</span>
-            <span>{payload?.sections.length ?? 0} sections</span>
+            <span>{payload?.sections.length ?? 0} sectors</span>
             <span>{error ? 'feed degraded' : 'feed nominal'}</span>
           </div>
         </section>
@@ -253,15 +293,25 @@ function App() {
               <ReactFlow
                 nodes={graph.nodes}
                 edges={graph.edges}
+                nodeTypes={nodeTypes}
                 fitView
+                fitViewOptions={{ padding: 0.16 }}
                 onNodeClick={(_, node) => setSelectedItem(node.data.item as DesireCacheItem)}
-                minZoom={0.25}
-                maxZoom={1.4}
+                onNodeMouseEnter={(_, node) => {
+                  if ((node.data.item as DesireCacheItem).status === 'item') {
+                    setSelectedItem(node.data.item as DesireCacheItem);
+                  }
+                }}
+                minZoom={0.3}
+                maxZoom={1.6}
+                nodesDraggable={false}
+                nodesConnectable={false}
+                elementsSelectable
                 proOptions={{ hideAttribution: true }}
               >
-                <MiniMap pannable zoomable />
+                <MiniMap pannable zoomable nodeColor={(node) => String(node.data?.nodeColor ?? DEFAULT_NODE_COLOR)} />
                 <Controls />
-                <Background color="#1f2a44" gap={32} />
+                <Background color="#15203a" gap={28} size={1.2} />
               </ReactFlow>
             )}
           </div>
@@ -279,13 +329,18 @@ function App() {
                   </div>
                   <div>
                     <dt>Price</dt>
-                    <dd>{selectedItem.effectivePrice || selectedItem.manualPrice || 'Unknown'}</dd>
+                    <dd>{itemPrice(selectedItem)}</dd>
                   </div>
                   <div>
                     <dt>Source</dt>
                     <dd>{selectedItem.source || 'Unknown'}</dd>
                   </div>
+                  <div>
+                    <dt>Status</dt>
+                    <dd>{itemTypeLabel(selectedItem)}</dd>
+                  </div>
                 </dl>
+                {selectedItem.image ? <img className="detail-image" src={selectedItem.image} alt="" /> : null}
                 {selectedItem.url ? (
                   <a className="action-link" href={selectedItem.url} target="_blank" rel="noreferrer">
                     Open item dossier

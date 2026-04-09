@@ -15,7 +15,10 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: transparent;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(29, 78, 216, 0.18), transparent 0 20%),
+    radial-gradient(circle at 85% 18%, rgba(168, 85, 247, 0.16), transparent 0 18%),
+    linear-gradient(180deg, #040712 0%, #09101d 100%);
 }
 
 #root {
@@ -37,7 +40,7 @@ body {
 
 .eyebrow {
   margin: 0 0 8px;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   color: #7dd3fc;
   font-size: 0.75rem;
@@ -46,6 +49,13 @@ body {
 h1 {
   margin: 0;
   font-size: clamp(2rem, 4vw, 3.5rem);
+  letter-spacing: -0.04em;
+}
+
+h3 {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.15;
 }
 
 .lede {
@@ -78,19 +88,36 @@ h1 {
 
 .workspace-panel {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr) 340px;
   gap: 18px;
   min-height: 74vh;
 }
 
 .flow-panel {
-  border-radius: 24px;
+  position: relative;
+  border-radius: 28px;
   overflow: hidden;
-  min-height: 70vh;
+  min-height: 72vh;
+}
+
+.flow-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 15% 25%, rgba(125, 211, 252, 0.08), transparent 0 22%),
+    radial-gradient(circle at 75% 15%, rgba(192, 132, 252, 0.1), transparent 0 18%);
+  z-index: 1;
+}
+
+.flow-panel > * {
+  position: relative;
+  z-index: 2;
 }
 
 .detail-panel {
-  border-radius: 24px;
+  border-radius: 28px;
   padding: 20px;
 }
 
@@ -109,6 +136,16 @@ h1 {
 .detail-copy {
   color: #ced8f3;
   line-height: 1.5;
+}
+
+.detail-image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 18px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(125, 211, 252, 0.18);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .detail-panel dl {
@@ -151,12 +188,130 @@ h1 {
   border-color: rgba(248, 113, 113, 0.35);
 }
 
-.react-flow__node {
-  transition: transform 120ms ease, box-shadow 120ms ease;
+.skill-node {
+  --node-color: #7dd3fc;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  min-width: 150px;
+  color: #f7fbff;
+  transition: transform 140ms ease, filter 140ms ease;
 }
 
-.react-flow__node:hover {
-  transform: translateY(-2px);
+.skill-node__glow,
+.skill-node__chrome {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.skill-node__glow {
+  background: radial-gradient(circle at top, color-mix(in srgb, var(--node-color) 40%, transparent), transparent 58%);
+  opacity: 0.8;
+}
+
+.skill-node__chrome {
+  inset: 1px;
+  border-radius: inherit;
+  border: 1px solid color-mix(in srgb, var(--node-color) 36%, rgba(255, 255, 255, 0.08));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.01));
+}
+
+.skill-node__content {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 8px;
+}
+
+.skill-node__type,
+.skill-node__meta,
+.skill-node__footer {
+  margin: 0;
+}
+
+.skill-node__type {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: color-mix(in srgb, var(--node-color) 72%, white);
+}
+
+.skill-node__meta {
+  font-size: 0.72rem;
+  color: #afbddb;
+}
+
+.skill-node__footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.68rem;
+  color: #cfd9ef;
+}
+
+.skill-node--section {
+  width: 220px;
+  border-radius: 26px;
+  padding: 18px 16px;
+  background: linear-gradient(180deg, rgba(15, 24, 44, 0.96), rgba(6, 12, 24, 0.94));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--node-color) 45%, transparent), 0 24px 44px rgba(0, 0, 0, 0.42);
+}
+
+.skill-node--branch {
+  width: 190px;
+  border-radius: 999px;
+  padding: 14px 18px;
+  background: linear-gradient(180deg, rgba(16, 24, 42, 0.94), rgba(8, 13, 26, 0.94));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--node-color) 35%, transparent), 0 16px 30px rgba(0, 0, 0, 0.36);
+}
+
+.skill-node--item {
+  width: 156px;
+  border-radius: 18px;
+  padding: 12px 12px 10px;
+  background: linear-gradient(180deg, rgba(9, 15, 28, 0.96), rgba(5, 10, 18, 0.96));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--node-color) 28%, transparent), 0 14px 28px rgba(0, 0, 0, 0.34);
+}
+
+.skill-node.is-selected,
+.react-flow__node.selected .skill-node,
+.react-flow__node:hover .skill-node {
+  transform: translateY(-2px) scale(1.02);
+  filter: saturate(1.08);
+}
+
+.react-flow__node {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.react-flow__handle {
+  opacity: 0;
+}
+
+.react-flow__edge-path {
+  filter: drop-shadow(0 0 8px rgba(125, 211, 252, 0.18));
+}
+
+.react-flow__controls,
+.react-flow__minimap {
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(125, 211, 252, 0.18);
+  background: rgba(7, 11, 20, 0.82);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.28);
+}
+
+.react-flow__controls button {
+  background: rgba(10, 15, 28, 0.95);
+  color: #eaf1ff;
+  border-bottom: 1px solid rgba(125, 211, 252, 0.14);
+}
+
+.react-flow__minimap-mask {
+  fill: rgba(12, 18, 32, 0.74);
 }
 
 .react-flow__attribution {
